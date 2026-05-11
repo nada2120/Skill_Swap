@@ -57,22 +57,29 @@ class MyProfileCubit extends Cubit<MyProfileState> {
 
       if (message.toLowerCase().contains("blocked")) {
         await LocalStorage.clearAllTokens();
+        await LocalStorage.clearUserId();
 
-        Get.dialog(
-          AlertDialog(
-            title: const Text("Account Blocked"),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Get.offAll(() => const SignInScreen());
-                },
-                child: const Text("OK"),
-              ),
-            ],
-          ),
-          barrierDismissible: false,
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (Get.context == null || Get.key.currentState == null) {
+            return;
+          }
+
+          Get.dialog(
+            AlertDialog(
+              title: const Text("Account Blocked"),
+              content: Text(message),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Get.offAll(() => const SignInScreen());
+                  },
+                  child: const Text("OK"),
+                ),
+              ],
+            ),
+            barrierDismissible: false,
+          );
+        });
       }
     }
   }

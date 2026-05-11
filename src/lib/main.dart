@@ -49,6 +49,19 @@ Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
     ),
   );
 
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    NotificationService.androidChannelId,
+    NotificationService.androidChannelName,
+    importance: Importance.max,
+  );
+
+  await localNotifications
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
+  if (message.notification != null) return;
+
   await localNotifications.show(
     id: DateTime.now().millisecondsSinceEpoch % 2147483647,
     title: message.notification?.title ?? message.data["title"] ?? "SkillSwap",
@@ -57,8 +70,8 @@ Future<void> firebaseBackgroundHandler(RemoteMessage message) async {
     // ✅
     notificationDetails: const NotificationDetails(
       android: AndroidNotificationDetails(
-        "channel_id",
-        "General Notifications",
+        NotificationService.androidChannelId,
+        NotificationService.androidChannelName,
         importance: Importance.max,
         priority: Priority.high,
       ),

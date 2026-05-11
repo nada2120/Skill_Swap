@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -11,6 +12,9 @@ import '../../domain/repositories/notification_repository.dart';
 import '../../helper/local_storage.dart';
 
 class NotificationService {
+  static const String androidChannelId = 'skillswap_notifications';
+  static const String androidChannelName = 'SkillSwap Notifications';
+
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   static final FlutterLocalNotificationsPlugin _localNotifications =
@@ -132,14 +136,20 @@ class NotificationService {
       settings: settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         print("Notification clicked (local)");
+        _handleLocalNotificationPayload(response.payload);
       },
     );
 
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'channel_id',
-      'General Notifications',
+      androidChannelId,
+      androidChannelName,
       importance: Importance.max,
     );
+
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
   }
 
   /// FOREGROUND
@@ -179,14 +189,20 @@ class NotificationService {
 
       handleNotification(message);
     });
+
+    FirebaseMessaging.instance.getInitialMessage().then((message) {
+      if (message == null) return;
+      log("Notification opened app from terminated state");
+      handleNotification(message);
+    });
   }
 
   /// SHOW LOCAL NOTIFICATION
   static Future<void> _showLocalNotification(RemoteMessage message) async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      "channel_id",
-      "General Notifications",
+      androidChannelId,
+      androidChannelName,
       importance: Importance.max,
       priority: Priority.high,
     );
@@ -204,17 +220,34 @@ class NotificationService {
       title: title,
       body: body,
       notificationDetails: details,
-      payload: message.data["type"] ?? "",
+      payload: jsonEncode(message.data),
     );
   }
 
   /// HANDLE NOTIFICATION NAVIGATION
   static void handleNotification(RemoteMessage message) {
-    String type = message.data["type"] ?? "";
+    handleNotificationData(message.data);
+  }
+
+  static void _handleLocalNotificationPayload(String? payload) {
+    if (payload == null || payload.isEmpty) return;
+
+    try {
+      final decoded = jsonDecode(payload);
+      if (decoded is Map<String, dynamic>) {
+        handleNotificationData(decoded);
+      }
+    } catch (e) {
+      log("Invalid local notification payload: $e");
+    }
+  }
+
+  static void handleNotificationData(Map<String, dynamic> data) {
+    String type = data["type"] ?? "";
 
     switch (type) {
       case "chat_message":
-        String chatId = message.data["chat_id"] ?? "";
+        String chatId = data["chat_id"] ?? data["chatId"] ?? "";
         log("Open Chat: $chatId");
         break;
 

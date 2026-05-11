@@ -33,17 +33,68 @@ class NotificationRepositoryImpl implements NotificationRepository {
       // Locally suppress this type so our own device ignores the bounce-back
       NotificationService.suppressType(type);
 
-      await api.sendNotification(
-        SendNotificationRequest(
-          receiverId: receiverId,
-          type: type,
-          payload: payload,
-        ),
+      final title = _buildTitle(type, payload);
+      final body = _buildBody(type, payload);
+      final enrichedPayload = {
+        ...payload,
+        'type': type,
+        'title': title,
+        'body': body,
+      };
+
+      final request = SendNotificationRequest(
+        receiverId: receiverId,
+        type: type,
+        title: title,
+        body: body,
+        payload: enrichedPayload,
       );
+
+      log("Notification API request: ${request.toJson()}");
+
+      final response = await api.sendNotification(
+        request,
+      );
+      log("Notification API response: $response");
       log("Notification sent: type=$type, to=$receiverId");
     } catch (e) {
       // Don't crash the main flow if notification fails
       log("Error sending notification: $e");
+    }
+  }
+
+  String _buildTitle(String type, Map<String, dynamic> payload) {
+    switch (type) {
+      case 'chat_message':
+        return payload['senderName']?.toString() ?? 'New message';
+      case 'new_booking':
+        return 'New booking request';
+      case 'request_accepted':
+        return 'Request accepted';
+      case 'request_rejected':
+        return 'Request rejected';
+      case 'booking_cancelled':
+        return 'Booking cancelled';
+      default:
+        return 'SkillSwap';
+    }
+  }
+
+  String _buildBody(String type, Map<String, dynamic> payload) {
+    switch (type) {
+      case 'chat_message':
+        return payload['messagePreview']?.toString() ??
+            'You have a new message';
+      case 'new_booking':
+        return 'You have a new session request.';
+      case 'request_accepted':
+        return 'Your session request has been accepted.';
+      case 'request_rejected':
+        return 'Your session request has been rejected.';
+      case 'booking_cancelled':
+        return 'A session booking was cancelled.';
+      default:
+        return payload['body']?.toString() ?? '';
     }
   }
 }

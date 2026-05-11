@@ -9,6 +9,7 @@ import '../../helper/local_storage.dart';
 
 class AuthInterceptor extends Interceptor {
   final Dio dio;
+  static bool _logoutInProgress = false;
 
   AuthInterceptor(this.dio);
 
@@ -159,31 +160,84 @@ class AuthInterceptor extends Interceptor {
     required String message,
   }) async {
     await LocalStorage.clearAllTokens();
+    await LocalStorage.clearUserId();
 
-    if (Get.isDialogOpen ?? false) return;
+    if (_logoutInProgress) return;
+    _logoutInProgress = true;
 
-    Get.dialog(
-      AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Get.back();
-              Get.offAll(() => const SignInScreen());
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-      barrierDismissible: false,
-    );
+    _showLogoutDialogWhenReady(title: title, message: message);
+  }
 
-    Future.delayed(const Duration(seconds: 5), () {
+  void _showLogoutDialogWhenReady({
+    required String title,
+    required String message,
+    int attempt = 0,
+  }) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final hasNavigator = Get.key.currentState != null;
+      final hasContext = Get.context != null;
+
+      if (!hasNavigator || !hasContext) {
+        if (attempt < 10) {
+          Timer(const Duration(milliseconds: 200), () {
+            _showLogoutDialogWhenReady(
+              title: title,
+              message: message,
+              attempt: attempt + 1,
+            );
+          });
+          return;
+        }
+
+        _goToSignInWhenReady();
+        return;
+      }
+
       if (Get.isDialogOpen ?? false) {
         Get.back();
-        Get.offAll(() => const SignInScreen());
       }
+
+      Get.dialog(
+        AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _goToSignInWhenReady();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+        barrierDismissible: false,
+      );
+
+      Future.delayed(const Duration(seconds: 5), () {
+        if (Get.isDialogOpen ?? false) {
+          _goToSignInWhenReady();
+        }
+      });
     });
+  }
+
+  void _goToSignInWhenReady({int attempt = 0}) {
+    final hasNavigator = Get.key.currentState != null;
+
+    if (!hasNavigator) {
+      if (attempt < 10) {
+        Timer(const Duration(milliseconds: 200), () {
+          _goToSignInWhenReady(attempt: attempt + 1);
+        });
+      }
+      return;
+    }
+
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+
+    Get.offAll(() => const SignInScreen());
+    _logoutInProgress = false;
   }
 }

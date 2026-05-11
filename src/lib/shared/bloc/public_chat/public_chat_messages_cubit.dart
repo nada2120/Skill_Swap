@@ -281,6 +281,7 @@ class PublicChatMessagesCubit extends Cubit<PublicChatMessagesState> {
           receiverId: _partnerId!,
           type: NotificationTypes.chatMessage,
           payload: {
+            'chat_id': _chatId!,
             'chatId': _chatId!,
             'senderName': senderName,
             'messagePreview': message.content.length > 100
