@@ -347,43 +347,28 @@ If you just want to **install and use the app** without building from source, pr
 
 ---
 
-### 🖥️ Windows — Install EXE
+### 🖥️ Windows — Run EXE
 
-#### Download and Installation Instructions
+#### Download Instructions
 
-1. **Locate the installer** in the [`exe/`](exe/) directory of this repository:
-   - `skill_swap.exe` — Windows installer (~19 MB)
-
-2. **Download** the file by cloning this repository or downloading it directly from GitHub.
+1. **Clone this repository** or download it directly from GitHub.
+2. **Navigate to** the [`exe/`](exe/) directory.
 
 #### Prerequisites
 
 - **Windows 10** or later (64-bit)
-- ~100 MB of free disk space
 - No additional software dependencies required
 
 #### Run Instructions
 
-1. **Run the installer:**
-   - Double-click `skill_swap.exe`.
+1. **Navigate to the executable:**
+   ```
+   exe/skill_swap.exe
+   ```
+2. **Double-click `skill_swap.exe`** to launch the application.
    - If Windows SmartScreen shows a warning:
      - Click **"More info"**
      - Then click **"Run anyway"**
-
-2. **Follow the setup wizard:**
-   - Choose the installation directory (default: `C:\Program Files\SkillSwap`).
-   - Optionally check **"Create a desktop shortcut"**.
-   - Click **"Install"** and wait for the process to complete.
-
-3. **Launch the app:**
-   - Check **"Launch SkillSwap"** at the end of the wizard, or
-   - Open the app from the **Start Menu** or **Desktop shortcut**.
-
-#### Uninstalling (Windows)
-
-- Go to **Settings → Apps → Installed Apps**.
-- Search for **SkillSwap**.
-- Click **"Uninstall"** and follow the prompts.
 
 ---
 
