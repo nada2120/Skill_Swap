@@ -4,14 +4,11 @@ import 'package:bloc/bloc.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../../shared/core/network/pusher_service.dart';
-import '../../constants/not_type.dart';
 import '../../data/models/public_chat/common_sender.dart';
 import '../../data/models/public_chat/get_history_messages.dart';
 import '../../data/models/public_chat/message_theme.dart';
 import '../../data/models/public_chat/reply_message.dart';
-import '../../dependency_injection/injection.dart';
 import '../../domain/repositories/chat_repository.dart';
-import '../../domain/repositories/notification_repository.dart';
 import '../../helper/local_storage.dart';
 import '../private_chats_bloc/private_chats_bloc.dart';
 import '../private_chats_bloc/private_chats_event.dart';
@@ -243,8 +240,6 @@ class PublicChatMessagesCubit extends Cubit<PublicChatMessagesState> {
     final index = _messages.indexWhere((m) => m.id == tempId);
     if (index == -1) return;
 
-    bool notificationSent = false;
-
     try {
       final res = await chatRepository.sendMessage(
         _chatId!,
@@ -260,36 +255,6 @@ class PublicChatMessagesCubit extends Cubit<PublicChatMessagesState> {
 
       emit(_buildLoaded());
       privateChatsBloc.add(GetPrivateChatsEvent());
-      final shouldSendNotification = _isPrivate &&
-          _partnerId != null &&
-          _partnerId!.isNotEmpty &&
-          _partnerId != _currentUserId;
-
-      if (!notificationSent && shouldSendNotification) {
-        notificationSent = true;
-
-        final senderName = _messages
-                .firstWhere(
-                  (m) => m.senderId.id == _currentUserId,
-                  orElse: () => _messages.first,
-                )
-                .senderId
-                .name ??
-            'Someone';
-
-        await sl<NotificationRepository>().sendNotification(
-          receiverId: _partnerId!,
-          type: NotificationTypes.chatMessage,
-          payload: {
-            'chat_id': _chatId!,
-            'chatId': _chatId!,
-            'senderName': senderName,
-            'messagePreview': message.content.length > 100
-                ? message.content.substring(0, 100)
-                : message.content,
-          },
-        );
-      }
     } catch (e) {
       _messages[index] = message.copyWith(status: MessageStatus.failed);
 
