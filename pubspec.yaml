@@ -1,0 +1,140 @@
+name: skill_swap
+description: A new Flutter project.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  flutter_bloc: ^9.1.1
+  bloc: ^9.1.0
+  equatable: ^2.0.7
+
+  # UI
+  smooth_page_indicator: ^2.0.1
+  carousel_slider_plus: ^7.1.1
+  iconsax_flutter: ^1.0.1
+  lottie: ^3.1.0
+  bottom_sheet: ^4.0.4
+  dropdown_button2: ^2.3.9
+  modal_side_sheet: ^0.0.1
+  range_slider_flutter: ^0.0.2
+  table_calendar: ^3.2.0
+  infinite_scroll_pagination: ^5.1.1
+  font_awesome_flutter: ^11.0.0
+  flutter_staggered_grid_view: ^0.7.0
+  # State / Navigation
+  get: ^4.6.5
+  get_it: ^9.2.0
+
+  # Network
+  dio: ^5.4.0
+  retrofit: ^4.9.2
+  json_annotation: ^4.8.1
+  jwt_decoder: ^2.0.1
+  connectivity_plus: ^6.1.0
+  pusher_channels_flutter: ^2.4.0
+  internet_connection_checker_plus: ^2.7.2
+  webview_flutter: ^4.10.0
+  url_launcher: ^6.3.2
+  # Local storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  get_storage: ^2.1.1
+
+  # Firebase (Android only usage)
+  firebase_core: ^4.5.0
+  firebase_messaging: ^16.1.2
+  flutter_local_notifications: ^21.0.0
+
+  #Video Call
+  # flutter_webrtc: ^1.4.1
+  cloud_firestore: ^6.3.0
+  flutter_inappwebview: ^6.1.5
+  jitsi_meet_flutter_sdk: ^11.1.1
+  # jitsi_meet_wrapper: ^0.2.0
+
+  # Device / Camera
+  image_picker: ^1.2.1
+  intl_phone_field: ^3.2.0
+
+  # AI
+  google_generative_ai: ^0.4.7
+  flutter_gemini: ^3.0.0
+
+  # Device Apps
+  flutter_device_apps: ^0.6.0
+
+  # Localization
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+
+  # Splash
+  flutter_native_splash: ^2.3.2
+
+  # Video Call (Android only usage)
+  #zego_zim: 2.27.0
+  #zego_uikit_prebuilt_call: ^4.22.3
+  #zego_uikit: ^2.28.44
+  #zego_uikit_signaling_plugin: ^2.8.20
+  permission_handler: ^12.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
+  build_runner: ^2.4.8
+  json_serializable: ^6.7.1
+  retrofit_generator: ^10.2.1
+  injectable_generator: ^2.2.0
+  injectable: ^2.2.0
+  device_preview: ^1.1.0
+  url_launcher: ^6.3.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/logo/
+    - assets/animations/
+    - assets/images/
+    - assets/images/onboarding_images/
+    - assets/images/people_images/
+    - assets/images/leaderboard_images/
+    - assets/images/store_images/
+    - assets/icons/
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  color_dark: "#272727"
+  image: assets/logo/logo.png
+  image_dark: assets/logo/logo.png
+
+  android_12:
+    color: "#FFFFFF"
+    color_dark: "#272727"
+    image: assets/logo/logo.png
+    image_dark: assets/logo/logo.png
+
+  web: true
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/logo/logoStart.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/logo/logoStart.png"
+
+dependency_overrides:
+  image_picker_for_web: ^2.1.1
+  #zego_zim: 2.27.0
+  #firebase_core_platform_interface: ^5.0.0

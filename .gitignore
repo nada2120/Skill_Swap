@@ -1,0 +1,82 @@
+# ---------------------------
+# Flutter / Dart / Pub related
+# ---------------------------
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+
+# ---------------------------
+# Android build / APK / AAB
+# ---------------------------
+android/app/build/
+*.apk
+*.aab
+*.keystore
+*.jks
+*.obb
+*.gradle
+
+# Kernel / intermediate files
+android/app/build/intermediates/
+android/app/build/generated/
+android/app/build/tmp/
+android/app/build/flutter_assets/
+
+# ---------------------------
+# iOS build / Xcode / CocoaPods
+# ---------------------------
+ios/Flutter/Flutter.podspec
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+*.mode1v3
+*.mode2v3
+*.pbxuser
+*.perspectivev3
+*.xcuserstate
+
+# ---------------------------
+# IDE / Editor files
+# ---------------------------
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+*.sublime-workspace
+*.sublime-project
+
+# ---------------------------
+# Miscellaneous
+# ---------------------------
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+*.lock
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# ---------------------------
+# Symbolication / Obfuscation
+# ---------------------------
+app.*.symbols
+app.*.map.json
+
+# ---------------------------
+# Optional: for Android Studio / IntelliJ
+# ---------------------------
+.gradle/
+local.properties
+captures/
+.externalNativeBuild/
