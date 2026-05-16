@@ -95,11 +95,18 @@ class PusherService {
 
     if (_subscribedChannels.containsKey(channelName)) return;
 
+    // If Pusher is still connecting, wait for it instead of
+    // queuing to _pendingSubscriptions (which may already have been processed).
     if (!_isConnected) {
-      if (!_pendingSubscriptions.contains(channelName)) {
-        _pendingSubscriptions.add(channelName);
+      if (_isConnecting && _connectionCompleter != null) {
+        await _connectionCompleter!.future;
+      } else {
+        // Not connected and not connecting — queue for later
+        if (!_pendingSubscriptions.contains(channelName)) {
+          _pendingSubscriptions.add(channelName);
+        }
+        return;
       }
-      return;
     }
 
     await _pusher.subscribe(channelName: channelName);

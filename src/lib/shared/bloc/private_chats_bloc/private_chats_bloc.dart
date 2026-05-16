@@ -61,6 +61,8 @@ class PrivateChatsBloc extends Bloc<PrivateChatEvent, PrivateChatsState> {
     if (isClosed) return;
 
     final eventType = data['_eventType'] ?? 'receive_message';
+    final channel = data['_pusherChannel']?.toString() ?? '';
+    print('🔔 PrivateChatsBloc._onPusherEvent: type=$eventType channel=$channel cacheSize=${cache.length}');
 
     if (eventType == 'receive_message') {
       add(NewMessageReceivedEvent(data));
@@ -70,12 +72,13 @@ class PrivateChatsBloc extends Bloc<PrivateChatEvent, PrivateChatsState> {
   /// Subscribe to Pusher channels for all cached chats so we get real-time
   /// receive_message events even while on the chat list screen.
   Future<void> _subscribeToAllChatChannels() async {
+    print('📡 PrivateChatsBloc: subscribing to ${cache.length} chat channels');
     for (final chat in cache) {
-      if (!_subscribedChatIds.contains(chat.id)) {
-        await pusherService.subscribeToChat(chatId: chat.id);
-        _subscribedChatIds.add(chat.id);
-      }
+      await pusherService.subscribeToChat(chatId: chat.id);
+      _subscribedChatIds.add(chat.id);
+      print('📡 PrivateChatsBloc: subscribed to ${chat.id} (type=${chat.type})');
     }
+    print('📡 PrivateChatsBloc: all subscriptions done');
   }
 
   Future<void> _handleNewMessageReceived(
@@ -89,22 +92,33 @@ class PrivateChatsBloc extends Bloc<PrivateChatEvent, PrivateChatsState> {
     final chatId = messageData['chatId']?.toString() ?? '';
     final senderId = messageData['senderId']?.toString() ?? '';
 
+    print('📬 PrivateChatsBloc._handleNewMessage: chatId=$chatId senderId=$senderId currentUser=$currentUserId');
+
     // Ignore own messages
-    if (senderId == currentUserId) return;
+    if (senderId == currentUserId) {
+      print('📬 PrivateChatsBloc: SKIP - own message');
+      return;
+    }
 
     // If the user is currently inside this chat, don't increment unread
-    if (_activeChatId == chatId) return;
+    if (_activeChatId == chatId) {
+      print('📬 PrivateChatsBloc: SKIP - active chat');
+      return;
+    }
 
     // Only count for chats that are in our cached list
     final chatExists = cache.any((c) => c.id == chatId);
+    print('📬 PrivateChatsBloc: chatExists=$chatExists (cache has ${cache.length} chats: ${cache.map((c) => c.id).toList()})');
     if (!chatExists) {
       // It might be a new chat we haven't fetched yet — do a full refresh
+      print('📬 PrivateChatsBloc: chat NOT in cache, refreshing...');
       add(GetPrivateChatsEvent());
       return;
     }
 
     // Increment unread count
     unreadMap[chatId] = (unreadMap[chatId] ?? 0) + 1;
+    print('✅ PrivateChatsBloc: unreadMap[$chatId] = ${unreadMap[chatId]}, total = ${unreadMap.values.fold(0, (a, b) => a + b)}');
 
     // Also update the last message preview in the cache
     final messageContent = messageData['message']?.toString() ??
@@ -113,7 +127,6 @@ class PrivateChatsBloc extends Bloc<PrivateChatEvent, PrivateChatsState> {
       final chatIndex = cache.indexWhere((c) => c.id == chatId);
       if (chatIndex != -1) {
         final chat = cache[chatIndex];
-        // Update the lastMessage with the new message content
         if (chat.lastMessage != null) {
           cache[chatIndex] = chat.copyWith(
             lastMessage: chat.lastMessage!.copyWith(
@@ -125,6 +138,7 @@ class PrivateChatsBloc extends Bloc<PrivateChatEvent, PrivateChatsState> {
       }
     }
 
+    print('✅ PrivateChatsBloc: emitting PrivateChatsLoaded');
     emit(PrivateChatsLoaded(cache));
   }
 

@@ -415,6 +415,9 @@ class PublicChatMessagesCubit extends Cubit<PublicChatMessagesState> {
     if (isClosed) return;
 
     final eventType = data['_eventType'] ?? 'receive_message';
+    final eventChannel = data['_pusherChannel']?.toString() ?? '';
+
+    print('📩 PublicChatCubit event: $eventType on channel: $eventChannel (my chat: $_chatId)');
 
     switch (eventType) {
       case 'message_edited':
@@ -468,7 +471,10 @@ class PublicChatMessagesCubit extends Cubit<PublicChatMessagesState> {
     }
 
     final newMessage = ChatMessage(
-      id: messageData['id']?.toString() ?? DateTime.now().toString(),
+      id: messageData['_id']?.toString() ??
+          messageData['id']?.toString() ??
+          messageData['messageId']?.toString() ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
       chatId: messageChatId,
       senderId: Sender(
         id: senderId,
@@ -502,19 +508,34 @@ class PublicChatMessagesCubit extends Cubit<PublicChatMessagesState> {
       }
       return;
     }
+
+    // Add messages from other users to the list so they appear in realtime
+    final exists = _messages.any((m) => m.id == newMessage.id);
+    if (!exists) {
+      _messages.add(newMessage);
+      emit(_buildLoaded());
+    }
     markMessagesAsRead();
   }
 
   void _handleMessageUpdated(Map<String, dynamic> data) {
     try {
+      final eventChatId = data['chatId']?.toString() ?? '';
+      if (eventChatId.isNotEmpty && eventChatId != _chatId) return;
+
       final messageId =
           data['messageId']?.toString() ?? data['_id']?.toString() ?? '';
       final newContent =
           data['newContent']?.toString() ?? data['content']?.toString() ?? '';
       if (messageId.isEmpty || newContent.isEmpty) return;
 
+      print('📝 message_edited: looking for messageId=$messageId in ${_messages.length} messages');
+
       final index = _messages.indexWhere((m) => m.id == messageId);
-      if (index == -1) return;
+      if (index == -1) {
+        print('⚠️ message_edited: messageId=$messageId NOT found. Local IDs: ${_messages.map((m) => m.id).toList()}');
+        return;
+      }
 
       _messages[index] =
           _messages[index].copyWith(content: newContent, isEdited: true);
@@ -525,6 +546,7 @@ class PublicChatMessagesCubit extends Cubit<PublicChatMessagesState> {
         replyMessage: _replyMessage,
         editingMessage: _editingMessage,
       ));
+      print('✅ message_edited: updated message at index $index');
     } catch (e) {
       print('❌ error handling message_edited $e');
     }
@@ -532,11 +554,22 @@ class PublicChatMessagesCubit extends Cubit<PublicChatMessagesState> {
 
   void _handleMessageDeleted(Map<String, dynamic> data) {
     try {
+      final eventChatId = data['chatId']?.toString() ?? '';
+      if (eventChatId.isNotEmpty && eventChatId != _chatId) return;
+
       final messageId =
           data['messageId']?.toString() ?? data['_id']?.toString() ?? '';
       if (messageId.isEmpty) return;
 
+      print('🗑️ message_deleted: looking for messageId=$messageId in ${_messages.length} messages');
+
+      final beforeCount = _messages.length;
       _messages.removeWhere((m) => m.id == messageId);
+      final removed = _messages.length < beforeCount;
+
+      if (!removed) {
+        print('⚠️ message_deleted: messageId=$messageId NOT found. Local IDs: ${_messages.map((m) => m.id).toList()}');
+      }
 
       emit(PublicChatMessagesLoaded(
         messages: List.from(_messages),
@@ -544,6 +577,7 @@ class PublicChatMessagesCubit extends Cubit<PublicChatMessagesState> {
         replyMessage: _replyMessage,
         editingMessage: _editingMessage,
       ));
+      if (removed) print('✅ message_deleted: removed message $messageId');
     } catch (e) {
       print('❌ error handling message_deleted $e');
     }
@@ -619,9 +653,11 @@ class PublicChatMessagesCubit extends Cubit<PublicChatMessagesState> {
   Future<void> close() {
     _messageSubscription?.cancel();
     _connectivitySub?.cancel();
-    if (_chatId != null && _currentUserId != null) {
-      pusherService.unsubscribeFromChat(_chatId!);
-    }
+    // NOTE: Do NOT unsubscribe from the Pusher channel here.
+    // PusherService is a singleton shared with PrivateChatsBloc, which
+    // also subscribes to chat channels for unread-count tracking.
+    // Unsubscribing here would remove the channel from the shared service,
+    // preventing PrivateChatsBloc from receiving events for that chat.
     return super.close();
   }
 }

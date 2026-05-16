@@ -38,6 +38,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     context.read<MyProfileCubit>().fetchMyProfile();
     context.read<GetBookingsCubit>().fetchTodayNextSessions();
+
+    // Load private chats early so the PrivateChatsBloc subscribes to all
+    // chat Pusher channels, enabling realtime unread count updates.
+    context.read<PrivateChatsBloc>().add(GetPrivateChatsEvent());
   }
 
   @override
